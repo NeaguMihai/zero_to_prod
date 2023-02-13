@@ -97,6 +97,10 @@ workflows:
   build-test:
     jobs:
       - build-and-test:
+          requires:
+              - security
+              - format
+              - lint
           filters:
             tags:
               only: /.*/
