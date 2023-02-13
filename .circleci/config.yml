@@ -74,6 +74,9 @@ jobs:
           name: Version information
           command: rustc --version; cargo --version; rustup --version
       - run:
+          name: Add build rools
+          command: apt install build-essential
+      - run:
           name: Install Clippy
           command: rustup component add clippy
       - run:
