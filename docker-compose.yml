@@ -1,0 +1,15 @@
+version: '4.1'
+
+services:
+    app:
+        build: 
+            context: .
+            dockerfile: Dockerfile.dev
+        ports:
+            - ${SERVER_PORT-8080}:8080
+        env_file:
+            - .env
+        volumes:
+            - .:/app
+        command: cargo watch -x run
+        
