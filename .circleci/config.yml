@@ -72,6 +72,9 @@ jobs:
   lint:
     docker:
       - image: cimg/rust:1.67.0-node
+    environment:
+      # Fail the build if there are warnings
+      RUSTFLAGS: '-C warnings'
     steps:
       - checkout
       - run:
@@ -117,6 +120,8 @@ workflows:
             tags:
               only: /.*/
       - coverage:
+          requires:
+              - build-and-test
           filters:
             tags:
               only: /.*/
