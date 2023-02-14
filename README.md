@@ -1,1 +1,2 @@
 # Following the book Zero to Production in Rust
+[![codecov](https://codecov.io/gh/NeaguMihai/zero_to_prod/branch/master/graph/badge.svg?token=BOVJ2ZO81Q)](https://codecov.io/gh/NeaguMihai/zero_to_prod) [![CircleCI](https://dl.circleci.com/status-badge/img/gh/NeaguMihai/zero_to_prod/tree/master.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/NeaguMihai/zero_to_prod/tree/master)
