@@ -1,6 +1,6 @@
 version: 2
 orbs:
-	codecov: codecov/codecov@3.2.4
+	  codecov: codecov/codecov@3.2.4
 
 jobs:
   build-and-test:
@@ -96,6 +96,7 @@ jobs:
           command: docker run --security-opt seccomp=unconfined -v "${PWD}:/volume" xd009642/tarpaulin cargo tarpaulin --ignore-tests -o xml --output-dir coverage
       - codecov/upload:
 		      file: './coverage/cobertura.xml'
+
 workflows:
   version: 2
   build-test:
