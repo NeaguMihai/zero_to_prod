@@ -1,0 +1,16 @@
+FROM rust:1.66.1-slim
+
+WORKDIR /usr/src/app
+COPY ./Cargo.toml ./Cargo.toml
+COPY ./Cargo.lock ./Cargo.lock
+RUN cargo install cargo-watch
+
+RUN cargo install --path .
+
+COPY ./src ./src
+
+RUN cargo build
+
+EXPOSE ${SERVER_PORT}
+
+CMD ["cargo", "watch", "-x", "run"]
