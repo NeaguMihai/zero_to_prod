@@ -3,7 +3,6 @@ orbs:
     codecov: codecov/codecov@3.2.4
 
 jobs:
-  - path-filtering/filter:
   build-and-test:
     docker:
       - image: cimg/rust:1.66.1
@@ -12,6 +11,12 @@ jobs:
       RUSTFLAGS: '-D warnings'
     steps:
       - checkout
+      - run:
+          name: Install formatter
+          command: rustup component add rustfmt
+      - run:
+          name: Formatting
+          command: cargo fmt --all -- --check
       - run:
           name: Calculate dependencies
           command: cargo generate-lockfile
@@ -33,8 +38,19 @@ jobs:
             - target/debug/deps
           key: v1-cargo-cache-{{ arch }}-{{ checksum "Cargo.lock" }}
       - run:
+          name: Install Clippy
+          command: rustup component add clippy
+      - run:
+          name: Linting
+          command: cargo clippy -- -D warnings
+      - run:
           name: Run all tests
           command: cargo test
+      - run:
+          name: Coverage with docker
+          command: docker run --security-opt seccomp=unconfined -v "${PWD}:/volume" xd009642/tarpaulin cargo tarpaulin --ignore-tests -o xml --output-dir coverage
+      - codecov/upload:
+          file: './coverage/cobertura.xml'
 
   security:
     docker:
@@ -58,71 +74,14 @@ jobs:
           name: Check for known security issues in dependencies
           command: cargo audit
 
-  format:
-    docker:
-      - image: cimg/rust:1.66.1
-    steps:
-      - checkout
-      - run:
-          name: Version information
-          command: rustc --version; cargo --version; rustup --version
-      - run:
-          name: Install formatter
-          command: rustup component add rustfmt
-      - run:
-          name: Formatting
-          command: cargo fmt --all -- --check
-
-  lint:
-    docker:
-      - image: cimg/rust:1.67.0-node
-    steps:
-      - checkout
-      - run:
-          name: Version information
-          command: rustc --version; cargo --version; rustup --version
-      - run:
-          name: Install Clippy
-          command: rustup component add clippy
-      - run:
-          name: Linting
-          command: cargo clippy -- -D warnings
-
-  coverage:
-    machine: true
-    steps:
-      - checkout
-      - run:
-          name: Coverage with docker
-          command: docker run --security-opt seccomp=unconfined -v "${PWD}:/volume" xd009642/tarpaulin cargo tarpaulin --ignore-tests -o xml --output-dir coverage
-      - codecov/upload:
-          file: './coverage/cobertura.xml'
-
 workflows:
-  version: 2
   build-test:
     jobs:
       - build-and-test:
-          requires:
-              - format
           filters:
             tags:
               only: /.*/
       - security:
-          filters:
-            tags:
-              only: /.*/
-      - format:
-          filters:
-            tags:
-              only: /.*/
-      - lint:
-          filters:
-            tags:
-              only: /.*/
-      - coverage:
-          requires:
-              - build-and-test
           filters:
             tags:
               only: /.*/
