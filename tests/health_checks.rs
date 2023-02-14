@@ -2,12 +2,14 @@
 mod tests {
     use std::net::TcpListener;
 
+    use zero_to_prod::SubscribeBody;
+
     #[tokio::test]
     async fn health_check_works() {
         let address = spawn_app();
         let client = reqwest::Client::new();
         let response = client
-            .get(format!("{address}/health_check"))
+            .get(format!("{address}/health-check"))
             .send()
             .await
             .expect("Failed to execute request.");
@@ -21,11 +23,11 @@ mod tests {
         let address = spawn_app();
         let client = reqwest::Client::new();
 
-        let body = r#"{"name":"derek","email"="derek@example.com"}"#;
+        let body = SubscribeBody::new("Ursula Le Guin".to_string(), "em@mail.com".to_string());
         let response = client
-            .post(format!("{address}/subscriptions"))
+            .post(format!("{address}/subscribe"))
             .header("Content-Type", "application/json")
-            .body(body)
+            .body(serde_json::to_string(&body).unwrap())
             .send()
             .await
             .expect("Failed to execute request.");
@@ -38,14 +40,14 @@ mod tests {
         let address = spawn_app();
         let client = reqwest::Client::new();
         let test_cases = vec![
-            ("name=le%20guin", "missing the email"),
-            ("email=ursula_le_guin%40gmail.com", "missing the name"),
-            ("", "missing both name and email"),
+            (r#"{"email":"mimi@mail.com"}"#, "missing the `name` field"),
+            (r#"{"name":"name"}"#, "missing the `email` field"),
+            (r#"{}"#, "missing both `name` and `email` fields"),
         ];
         for (invalid_body, error_message) in test_cases {
             let response = client
-                .post(&format!("{address}/subscriptions"))
-                .header("Content-Type", "application/x-www-form-urlencoded")
+                .post(&format!("{address}/subscribe"))
+                .header("Content-Type", "application/json")
                 .body(invalid_body)
                 .send()
                 .await
