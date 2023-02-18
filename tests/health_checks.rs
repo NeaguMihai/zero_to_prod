@@ -2,7 +2,7 @@
 mod tests {
     use std::net::TcpListener;
 
-    use zero_to_prod::SubscribeBody;
+    use zero_to_prod::routes::SubscribeBody;
 
     #[tokio::test]
     async fn health_check_works() {
