@@ -2,7 +2,10 @@
 mod tests {
     use std::net::TcpListener;
 
-    use zero_to_prod::routes::SubscribeBody;
+    use diesel::IntoSql;
+    use zero_to_prod::{
+        common::configuration::database::DatabaseConnectionFactory, routes::SubscribeBody,
+    };
 
     #[tokio::test]
     async fn health_check_works() {
@@ -21,6 +24,10 @@ mod tests {
     #[tokio::test]
     async fn subscribe_returns_a_200_for_valid_form_data() {
         let address = spawn_app();
+
+        let db_connection =
+            DatabaseConnectionFactory::get_pg_connection().expect("Failed to connect to database");
+
         let client = reqwest::Client::new();
 
         let body = SubscribeBody::new("Ursula Le Guin".to_string(), "em@mail.com".to_string());
@@ -33,6 +40,8 @@ mod tests {
             .expect("Failed to execute request.");
 
         assert_eq!(200, response.status().as_u16());
+
+        // let saved = db_connection.into_sql()
     }
 
     #[tokio::test]

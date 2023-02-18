@@ -56,6 +56,11 @@ pub enum Env {
     ServerPort,
     ServerHost,
     DatabaseUrl,
+    DbPort,
+    DbHost,
+    DbUser,
+    DbPassword,
+    DbName,
 }
 
 /// This function ensures that ENV enum can be serialized
@@ -79,6 +84,11 @@ impl fmt::Display for Env {
             Env::ServerPort => write!(f, "{}", "SERVER_PORT"),
             Env::ServerHost => write!(f, "{}", "SERVER_HOST"),
             Env::DatabaseUrl => write!(f, "{}", "DATABASE_URL"),
+            Env::DbPort => write!(f, "{}", "DB_PORT"),
+            Env::DbHost => write!(f, "{}", "DB_HOST"),
+            Env::DbUser => write!(f, "{}", "DB_USER"),
+            Env::DbPassword => write!(f, "{}", "DB_PASSWORD"),
+            Env::DbName => write!(f, "{}", "DB_NAME"),
         }
     }
 }

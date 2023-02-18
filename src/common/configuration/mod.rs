@@ -3,6 +3,7 @@
 use self::env::Env;
 
 pub mod env;
+pub mod database;
 
 pub struct ConfigService {}
 
