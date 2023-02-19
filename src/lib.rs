@@ -2,6 +2,8 @@
 pub mod common;
 pub mod routes;
 pub mod startup;
+pub mod models;
+pub mod schema;
 
 use std::net::TcpListener;
 

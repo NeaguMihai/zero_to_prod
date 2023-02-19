@@ -1,8 +1,11 @@
 #[cfg(test)]
 mod tests {
     use std::net::TcpListener;
-
-    use diesel::IntoSql;
+    use diesel::prelude::*;
+    use diesel::query_dsl::QueryDsl;
+    use diesel::{RunQueryDsl};
+    use zero_to_prod::models::subscription::Subscription;
+    use zero_to_prod::schema::subscriptions::dsl::{subscriptions, name};
     use zero_to_prod::{
         common::configuration::database::DatabaseConnectionFactory, routes::SubscribeBody,
     };
@@ -25,7 +28,7 @@ mod tests {
     async fn subscribe_returns_a_200_for_valid_form_data() {
         let address = spawn_app();
 
-        let db_connection =
+        let db_connection = &mut
             DatabaseConnectionFactory::get_pg_connection().expect("Failed to connect to database");
 
         let client = reqwest::Client::new();
@@ -41,7 +44,10 @@ mod tests {
 
         assert_eq!(200, response.status().as_u16());
 
-        // let saved = db_connection.into_sql()
+        let saved = subscriptions
+            .filter(name.eq("adas"))
+            .load::<Subscription>(db_connection)
+            .expect("Failed to load subscriptions from database");
     }
 
     #[tokio::test]

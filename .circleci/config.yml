@@ -6,11 +6,16 @@ jobs:
   build-and-test:
     docker:
       - image: cimg/rust:1.66.1
-    environment:
-      # Fail the build if there are warnings
-      RUSTFLAGS: '-D warnings'
+        environment:
+          RUSTFLAGS: '-D warnings'
+      - image: cimg/postgres:14.0
+        environment:
+            POSTGRES_USER: $DB_USER
+            POSTGRES_PASSWORD: $DB_PASSWORD
+            POSTGRES_DB: $DB_NAME
     steps:
       - checkout
+      - run: envsubst < ./.env.test > ./.env
       - run:
           name: Install formatter
           command: rustup component add rustfmt
