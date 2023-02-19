@@ -15,6 +15,7 @@ jobs:
             POSTGRES_DB: $DB_NAME
     steps:
       - checkout
+      - run: apt-get install gettext-base
       - run: envsubst < ./.env.test > ./.env
       - run:
           name: Install formatter
