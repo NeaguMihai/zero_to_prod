@@ -1,28 +1,32 @@
 version: 2.1
 orbs:
-    codecov: codecov/codecov@3.2.4
+  codecov: codecov/codecov@3.2.4
 
 jobs:
   build-and-test:
     docker:
       - image: cimg/rust:1.66.1
         environment:
-          RUSTFLAGS: '-D warnings'
+          RUSTFLAGS: "-D warnings"
       - image: cimg/postgres:14.0
         environment:
-            POSTGRES_USER: $DB_USER
-            POSTGRES_PASSWORD: $DB_PASSWORD
-            POSTGRES_DB: $DB_NAME
+          POSTGRES_USER: $DB_USER
+          POSTGRES_PASSWORD: $DB_PASSWORD
+          POSTGRES_DB: $DB_NAME
     steps:
       - checkout
-      - run: apt-get install gettext-base
+      - run: sudo apt-get update
+      - run: sudo apt-get install gettext-base
       - run: envsubst < ./.env.test > ./.env
+      - run: echo ./.env
       - run:
           name: Install formatter
           command: rustup component add rustfmt
       - run:
           name: Formatting
           command: cargo fmt --all -- --check
+      - run: sudo apt-get install libpq-dev -y
+      - run: cargo install diesel_cli --no-default-features --features postgres
       - run:
           name: Calculate dependencies
           command: cargo generate-lockfile
@@ -83,17 +87,17 @@ jobs:
           name: Coverage with docker
           command: docker run --security-opt seccomp=unconfined -v "${PWD}:/volume" xd009642/tarpaulin cargo tarpaulin --ignore-tests -o xml --output-dir coverage
       - codecov/upload:
-          file: './coverage/cobertura.xml'
+          file: "./coverage/cobertura.xml"
 workflows:
   build-test:
     jobs:
       - build-and-test:
           filters:
             tags:
-              only: /.*/        
+              only: /.*/
       - coverage:
           requires:
-              - build-and-test
+            - build-and-test
           filters:
             tags:
               only: /.*/

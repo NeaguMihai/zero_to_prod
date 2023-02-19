@@ -1,6 +1,6 @@
-use diesel::{Queryable};
 use chrono::NaiveDateTime;
-use serde::{Serialize, Deserialize};
+use diesel::Queryable;
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 #[derive(Queryable, Serialize, Deserialize)]

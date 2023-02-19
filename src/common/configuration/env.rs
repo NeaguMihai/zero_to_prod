@@ -1,4 +1,3 @@
-
 use core::fmt;
 
 #[derive(Clone, Debug, serde::Deserialize, PartialEq, Eq)]
@@ -8,15 +7,15 @@ pub enum ENV {
 }
 
 /// This function ensures that ENV enum can be serialized
-/// 
+///
 /// # Example
 /// ```
 /// use zero_to_prod::common::configuration::env::ENV;
-/// 
+///
 /// let env = ENV::Development;
 /// let env_string = format!("{}", env);
 /// assert_eq!(env_string, "Development");
-/// 
+///
 /// let env = ENV::Production;
 /// let env_string = format!("{}", env);
 /// assert_eq!(env_string, "Production");
@@ -31,14 +30,14 @@ impl fmt::Display for ENV {
 }
 
 /// This function ensures that an env string can be deserialized into an ENV enum
-/// 
+///
 /// # Example
 /// ```
 /// use zero_to_prod::common::configuration::env::ENV;
-/// 
+///
 /// let env_string = "Development";
 /// assert_eq!(ENV::from(env_string), ENV::Development);
-/// 
+///
 /// ```
 impl From<&str> for ENV {
     fn from(env: &str) -> Self {
@@ -64,19 +63,19 @@ pub enum Env {
 }
 
 /// This function ensures that ENV enum can be serialized
-/// 
+///
 /// # Example
 /// ```
 /// use zero_to_prod::common::configuration::env::Env;
 /// use zero_to_prod::common::configuration::env::ENV;
-/// 
+///
 /// let env = Env::Env;
 /// let env_string = format!("{}", env);
 /// assert_eq!(env_string, "ENV");
-/// 
+///
 ///
 /// ```
-/// 
+///
 impl fmt::Display for Env {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {

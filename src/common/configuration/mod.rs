@@ -2,8 +2,8 @@
 
 use self::env::Env;
 
-pub mod env;
 pub mod database;
+pub mod env;
 
 pub struct ConfigService {}
 

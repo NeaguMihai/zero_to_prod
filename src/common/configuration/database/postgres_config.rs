@@ -28,7 +28,7 @@ impl DatabaseConnectionConfig for PgConnectionFactory {
             Ok(c) => {
                 println!("Connected to database");
                 return Ok(c);
-            },
+            }
             Err(e) => Err(e),
         }
     }

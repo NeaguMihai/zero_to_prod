@@ -1,4 +1,4 @@
-use diesel::{PgConnection, ConnectionError};
+use diesel::{ConnectionError, PgConnection};
 
 use self::postgres_config::PgConnectionFactory;
 

@@ -1,9 +1,9 @@
 //! src/lib.rs
 pub mod common;
-pub mod routes;
-pub mod startup;
 pub mod models;
+pub mod routes;
 pub mod schema;
+pub mod startup;
 
 use std::net::TcpListener;
 

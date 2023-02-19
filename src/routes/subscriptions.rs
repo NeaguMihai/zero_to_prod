@@ -1,4 +1,4 @@
-use actix_web::{HttpResponse, web};
+use actix_web::{web, HttpResponse};
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize)]
@@ -20,5 +20,5 @@ impl SubscribeBody {
 }
 
 pub async fn subscribe(_body: web::Json<SubscribeBody>) -> HttpResponse {
-  HttpResponse::Ok().finish()
+    HttpResponse::Ok().finish()
 }
