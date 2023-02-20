@@ -79,15 +79,15 @@ pub enum Env {
 impl fmt::Display for Env {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Env::Env => write!(f, "{}", "ENV"),
-            Env::ServerPort => write!(f, "{}", "SERVER_PORT"),
-            Env::ServerHost => write!(f, "{}", "SERVER_HOST"),
-            Env::DatabaseUrl => write!(f, "{}", "DATABASE_URL"),
-            Env::DbPort => write!(f, "{}", "DB_PORT"),
-            Env::DbHost => write!(f, "{}", "DB_HOST"),
-            Env::DbUser => write!(f, "{}", "DB_USER"),
-            Env::DbPassword => write!(f, "{}", "DB_PASSWORD"),
-            Env::DbName => write!(f, "{}", "DB_NAME"),
+            Env::Env => write!(f, "ENV"),
+            Env::ServerPort => write!(f, "SERVER_PORT"),
+            Env::ServerHost => write!(f, "SERVER_HOST"),
+            Env::DatabaseUrl => write!(f, "DATABASE_URL"),
+            Env::DbPort => write!(f, "DB_PORT"),
+            Env::DbHost => write!(f, "DB_HOST"),
+            Env::DbUser => write!(f, "DB_USER"),
+            Env::DbPassword => write!(f, "DB_PASSWORD"),
+            Env::DbName => write!(f, "DB_NAME"),
         }
     }
 }

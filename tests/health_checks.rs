@@ -44,7 +44,7 @@ mod tests {
 
         assert_eq!(200, response.status().as_u16());
 
-        let saved = subscriptions
+        let _saved = subscriptions
             .filter(name.eq("adas"))
             .load::<Subscription>(db_connection)
             .expect("Failed to load subscriptions from database");

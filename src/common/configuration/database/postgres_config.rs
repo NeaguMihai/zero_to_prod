@@ -27,7 +27,7 @@ impl DatabaseConnectionConfig for PgConnectionFactory {
         match connection {
             Ok(c) => {
                 println!("Connected to database");
-                return Ok(c);
+                Ok(c)
             }
             Err(e) => Err(e),
         }
