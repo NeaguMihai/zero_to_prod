@@ -1,9 +1,16 @@
 use std::net::TcpListener;
 
-use zero_to_prod::run;
+use zero_to_prod::{
+    common::configuration::{env::Env, ConfigService},
+    run,
+};
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    let listener = TcpListener::bind("0.0.0.0:8080").expect("Failed to bind random port");
+    ConfigService::init();
+    let port: u16 = ConfigService::get(Env::ServerPort).parse().unwrap();
+    let host: String = ConfigService::get(Env::ServerHost);
+    let listener =
+        TcpListener::bind(format!("{}:{}", host, port)).expect("Failed to bind random port");
     run(listener)?.await
 }

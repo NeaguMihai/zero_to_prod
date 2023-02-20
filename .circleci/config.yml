@@ -1,19 +1,19 @@
 version: 2.1
 orbs:
-    codecov: codecov/codecov@3.2.4
+  codecov: codecov/codecov@3.2.4
 
 jobs:
-  build-and-test:
+  build-and-lint:
     docker:
-      - image: cimg/rust:1.66.1
-    environment:
-      # Fail the build if there are warnings
-      RUSTFLAGS: '-D warnings'
+      - image: nmihai/rust-ci-base:0.2
+        environment:
+          RUSTFLAGS: "-D warnings"
     steps:
       - checkout
-      - run:
-          name: Install formatter
-          command: rustup component add rustfmt
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - run: envsubst < ./.env.test > ./.env
+      - run: cat ./.env
       - run:
           name: Formatting
           command: cargo fmt --all -- --check
@@ -32,62 +32,77 @@ jobs:
           command: cargo build
       - save_cache:
           paths:
-            - /usr/local/cargo/registry
             - target/debug/.fingerprint
             - target/debug/build
             - target/debug/deps
           key: v1-cargo-cache-{{ arch }}-{{ checksum "Cargo.lock" }}
       - run:
-          name: Install Clippy
-          command: rustup component add clippy
-      - run:
           name: Linting
           command: cargo clippy -- -D warnings
-      - run:
-          name: Run all tests
-          command: cargo test
 
   security:
     docker:
-      - image: cimg/rust:1.66.1
+      - image: nmihai/rust-ci-base:0.2
     steps:
       - checkout
-      - run:
-          name: Version information
-          command: rustc --version; cargo --version; rustup --version
+      - setup_remote_docker:
+          docker_layer_caching: true
       - restore_cache:
           keys:
             - v1-cargo-audit-{{ arch }}
       - run:
-          name: Install dependency auditing tool
-          command: cargo install cargo-audit
+          name: Check for known security issues in dependencies
+          command: cargo audit
       - save_cache:
           paths:
             - /usr/local/cargo
           key: v1-cargo-audit-{{ arch }}
-      - run:
-          name: Check for known security issues in dependencies
-          command: cargo audit
-
   coverage:
     machine: true
+    environment: 
+      DB_HOST: postgres
     steps:
       - checkout
+      - restore_cache:
+          keys:
+            - v1-cargo-coverage-{{ arch }}
+      - run: envsubst < /home/circleci/project/.env.test > /home/circleci/project/.env
+      - run: cat ./.env
+      - run: sudo apt-get install libpq-dev
+      - run:
+          name: Create docker network
+          command: docker network create -d bridge postgres
+      - run:
+          name: Create postgress container
+          command: docker run -d -e POSTGRES_USER=test_app_user -e POSTGRES_PASSWORD=test_db_password -e POSTGRES_DB=test_db --hostname postgres --network postgres postgres
+      - run:
+          name: Load env
+          command: source /home/circleci/project/.env
+      - run:
+          name: Create container for running  migrations
+          command: source /home/circleci/project/.env && docker run --rm -v /home/circleci/project:/home/circleci/project --network postgres nmihai/rust-ci-base:0.2 diesel migration run --database-url $DATABASE_URL
       - run:
           name: Coverage with docker
-          command: docker run --security-opt seccomp=unconfined -v "${PWD}:/volume" xd009642/tarpaulin cargo tarpaulin --ignore-tests -o xml --output-dir coverage
+          command: docker run --security-opt seccomp=unconfined -v "${PWD}:/volume" --network postgres xd009642/tarpaulin cargo tarpaulin --ignore-tests -o xml --output-dir coverage --skip-clean
       - codecov/upload:
-          file: './coverage/cobertura.xml'
+          file: "./coverage/cobertura.xml"
+      - save_cache:
+          paths:
+            - /usr/local/cargo
+            - target/debug/.fingerprint
+            - target/debug/build
+            - target/debug/deps
+          key: v1-cargo-coverage-{{ arch }}
 workflows:
   build-test:
     jobs:
-      - build-and-test:
+      - build-and-lint:
           filters:
             tags:
-              only: /.*/        
+              only: /.*/
       - coverage:
           requires:
-              - build-and-test
+            - build-and-lint
           filters:
             tags:
               only: /.*/

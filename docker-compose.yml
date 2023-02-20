@@ -12,4 +12,25 @@ services:
         volumes:
             - .:/app
         command: cargo watch -x run
-        
+        depends_on:
+            - db
+        networks:
+            - internal
+    db:
+        image: postgres:13.1
+        ports:
+            - ${DB_PORT-5432}:5432
+        environment:
+            POSTGRES_USER: ${DB_USER}
+            POSTGRES_PASSWORD: ${DB_PASSWORD}
+            POSTGRES_DB: ${DB_NAME}
+        env_file:
+            - .env
+        volumes:
+            - db_data:/var/lib/postgresql/data
+        networks:
+            - internal
+volumes:
+    db_data:
+networks:
+    internal:
