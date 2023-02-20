@@ -8,11 +8,6 @@ jobs:
       - image: nmihai/rust-ci-base:0.2
         environment:
           RUSTFLAGS: "-D warnings"
-      - image: cimg/postgres:14.0
-        environment:
-          POSTGRES_USER: test_app_user
-          POSTGRES_PASSWORD: test_db_password
-          POSTGRES_DB: test_db
     steps:
       - checkout
       - run: envsubst < ./.env.test > ./.env
@@ -20,12 +15,6 @@ jobs:
       - run:
           name: Formatting
           command: cargo fmt --all -- --check
-      - run:
-          name: Wait for database to initialize
-          command: dockerize -wait tcp://localhost:5432 -timeout 1m
-      - run:
-          name: migrate database
-          command: diesel migration run
       - run:
           name: Calculate dependencies
           command: cargo generate-lockfile
