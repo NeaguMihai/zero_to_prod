@@ -1,0 +1,13 @@
+#!/bin/sh
+
+set -e
+
+echo 'cargo-husky > pre-push'
+echo '+cargo format'
+cargo fmt --all -- --check
+echo '+cargo clippy'
+cargo clippy -- -D warnings
+echo '+cargo audit'
+cargo audit
+echo '+cargo test'
+cargo test
