@@ -58,9 +58,7 @@ jobs:
             - /usr/local/cargo
           key: v1-cargo-audit-{{ arch }}
   coverage:
-    machine: 
-      resource_class: large
-      docker_layer_caching: true
+    machine: true
     environment: 
       DB_HOST: postgres
     steps:
