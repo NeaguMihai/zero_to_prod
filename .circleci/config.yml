@@ -10,6 +10,8 @@ jobs:
           RUSTFLAGS: "-D warnings"
     steps:
       - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
       - run: envsubst < ./.env.test > ./.env
       - run: cat ./.env
       - run:
