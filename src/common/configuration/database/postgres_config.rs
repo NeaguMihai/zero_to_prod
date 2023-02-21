@@ -1,13 +1,14 @@
-use diesel::{Connection, ConnectionError, PgConnection};
+use diesel::{r2d2::ConnectionManager, r2d2::Pool, PgConnection};
 
 use crate::common::configuration::{env::Env, ConfigService};
 
-use super::DatabaseConnectionConfig;
+use super::{DatabaseConnectionConfig, DbPool};
+
+pub type PgPool = DbPool<PgConnection>;
 
 pub struct PgConnectionFactory {}
 
-impl DatabaseConnectionConfig for PgConnectionFactory {
-    type ConnectionType = PgConnection;
+impl DatabaseConnectionConfig<PgPool> for PgConnectionFactory {
     fn get_connection_string() -> String {
         let host = ConfigService::get(Env::DbHost);
         let port = ConfigService::get(Env::DbPort);
@@ -21,10 +22,11 @@ impl DatabaseConnectionConfig for PgConnectionFactory {
         connection_string
     }
 
-    fn get_connection() -> Result<PgConnection, ConnectionError> {
+    fn get_connection() -> Result<DbPool<PgConnection>, r2d2::Error> {
         let connection_string = PgConnectionFactory::get_connection_string();
-        let connection = PgConnection::establish(&connection_string);
-        match connection {
+        let manager = ConnectionManager::<PgConnection>::new(connection_string);
+        let pool = Pool::builder().build(manager);
+        match pool {
             Ok(c) => {
                 println!("Connected to database");
                 Ok(c)

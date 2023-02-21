@@ -28,7 +28,7 @@ mod tests {
     async fn subscribe_returns_a_200_for_valid_form_data() {
         let address = spawn_app();
 
-        let db_connection = &mut DatabaseConnectionFactory::get_pg_connection()
+        let db_connection = &mut DatabaseConnectionFactory::get_pg_connection_pool()
             .expect("Failed to connect to database");
 
         let client = reqwest::Client::new();
@@ -43,10 +43,12 @@ mod tests {
             .expect("Failed to execute request.");
 
         assert_eq!(200, response.status().as_u16());
-
+        let mut conn = db_connection
+            .get()
+            .expect("Failed to get connection from pool");
         let _saved = subscriptions
             .filter(name.eq("adas"))
-            .load::<Subscription>(db_connection)
+            .load::<Subscription>(&mut conn)
             .expect("Failed to load subscriptions from database");
     }
 
@@ -81,7 +83,9 @@ mod tests {
     fn spawn_app() -> String {
         let listener = TcpListener::bind("127.0.0.1:0").expect("Failed to bind random port");
         let port = listener.local_addr().unwrap().port();
-        let server = zero_to_prod::run(listener).expect("Failed to bind address");
+        let db_connection = DatabaseConnectionFactory::get_pg_connection_pool()
+            .expect("Failed to connect to database");
+        let server = zero_to_prod::run(listener, db_connection).expect("Failed to bind address");
         let _ = tokio::spawn(server);
         format!("http://127.0.0.1:{port}")
     }
