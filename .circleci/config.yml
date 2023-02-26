@@ -6,8 +6,8 @@ jobs:
   build-and-lint:
     docker:
       - image: nmihai/rust-ci-base:0.2
-        environment:
-          RUSTFLAGS: "-D warnings"
+    environment:
+      RUSTFLAGS: "-D warnings"
     steps:
       - checkout
       - setup_remote_docker:
