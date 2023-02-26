@@ -11,13 +11,15 @@ services:
             - .env
         volumes:
             - .:/app
-        command: cargo watch -x run
+            - /app/target
+        command: tail -f /dev/null
         depends_on:
             - db
         networks:
             - internal
     db:
         image: postgres:13.1
+        hostname: postgres
         ports:
             - ${DB_PORT-5432}:5432
         environment:
