@@ -4,6 +4,7 @@ use self::env::Env;
 
 pub mod database;
 pub mod env;
+pub mod logger;
 
 pub struct ConfigService {}
 
