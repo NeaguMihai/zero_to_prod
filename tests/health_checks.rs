@@ -3,6 +3,7 @@ mod tests {
     use diesel::pg::Pg;
     use diesel::sql_query;
     use diesel::RunQueryDsl;
+    use once_cell::sync::Lazy;
     use std::net::TcpListener;
     use uuid::Uuid;
     use zero_to_prod::common::configuration::database::postgres_config::PgPool;
@@ -10,9 +11,19 @@ mod tests {
     use zero_to_prod::common::configuration::database::{
         run_migrations, DatabaseConnectionOptions,
     };
+    use zero_to_prod::common::configuration::logger::setup_logger;
     use zero_to_prod::models::subscription::dtos::create_subscription::SubscribeDto;
     use zero_to_prod::models::subscription::Subscription;
     use zero_to_prod::schema::subscriptions::dsl::subscriptions;
+    use zero_to_prod::startup::run;
+
+    static TRACING: Lazy<()> = Lazy::new(|| {
+        if std::env::var("TEST_LOG").is_ok() {
+            setup_logger(std::io::stdout)
+        } else {
+            setup_logger(std::io::sink)
+        }
+    });
 
     struct TestApp {
         app_url: String,
@@ -114,7 +125,7 @@ mod tests {
         let listener = TcpListener::bind("127.0.0.1:0").expect("Failed to bind random port");
         let port = listener.local_addr().unwrap().port();
         let conn = db_bootstrap();
-        let server = zero_to_prod::run(listener, conn.clone()).expect("Failed to bind address");
+        let server = run(listener, conn.clone()).expect("Failed to bind address");
         let _ = tokio::spawn(server);
         TestApp {
             app_url: format!("http://0.0.0.0:{port}"),
@@ -122,18 +133,22 @@ mod tests {
         }
     }
     fn db_bootstrap() -> PgPool {
+        Lazy::force(&TRACING);
         let connection_options = DatabaseConnectionOptions::default();
         let mut db_connection = DatabaseConnectionFactory::get_pg_connection(connection_options);
         let db_name = format!("db_{}", Uuid::new_v4().to_string().replace("-", ""));
+
         println!("Creating database: {}", db_name);
         sql_query(format!("CREATE DATABASE {}", db_name))
             .execute(&mut db_connection)
             .expect("Failed to create database");
+
         let mut connection_options = DatabaseConnectionOptions::default();
         connection_options.database = Some(db_name.clone());
         let db_connection = DatabaseConnectionFactory::get_pg_connection_pool(connection_options)
             .expect("Failed to connect to database");
         run_migrations::<Pg>(&mut db_connection.get().expect("Failed to run migrations"));
+
         db_connection
     }
 }
