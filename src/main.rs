@@ -1,5 +1,4 @@
 use std::net::TcpListener;
-
 use zero_to_prod::common::configuration::database::DatabaseConnectionOptions;
 use zero_to_prod::common::configuration::logger::setup_logger;
 use zero_to_prod::common::configuration::{
