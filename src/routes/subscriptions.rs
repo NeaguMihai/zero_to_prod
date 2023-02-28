@@ -2,6 +2,7 @@ use crate::common::configuration::database::postgres_config::PgPool;
 use crate::models::subscription::dtos::create_subscription::SubscribeDto;
 use crate::models::subscription::Subscription;
 use crate::schema::subscriptions::dsl;
+use actix_web::post;
 use actix_web::{web, HttpResponse};
 use diesel::insert_into;
 use diesel::r2d2::ConnectionManager;
@@ -18,6 +19,7 @@ use r2d2::PooledConnection;
         subscriber_name = %body.name()
     )
 )]
+#[post("subscribe")]
 pub async fn subscribe(body: web::Json<SubscribeDto>, pool: web::Data<PgPool>) -> HttpResponse {
     let conn = pool.get().unwrap();
     log::info!("Saving subscription");
