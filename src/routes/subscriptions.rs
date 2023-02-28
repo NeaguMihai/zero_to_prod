@@ -19,7 +19,7 @@ use r2d2::PooledConnection;
         subscriber_name = %body.name()
     )
 )]
-#[post("subscribe")]
+#[post("/subscribe")]
 pub async fn subscribe(body: web::Json<SubscribeDto>, pool: web::Data<PgPool>) -> HttpResponse {
     let conn = pool.get().unwrap();
     log::info!("Saving subscription");
