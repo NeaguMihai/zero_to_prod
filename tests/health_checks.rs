@@ -125,7 +125,7 @@ mod tests {
         let listener = TcpListener::bind("127.0.0.1:0").expect("Failed to bind random port");
         let port = listener.local_addr().unwrap().port();
         let conn = db_bootstrap();
-        let server = run(listener, conn.clone()).expect("Failed to bind address");
+        let server = run(listener, conn.clone());
         let _ = tokio::spawn(server);
         TestApp {
             app_url: format!("http://0.0.0.0:{port}"),

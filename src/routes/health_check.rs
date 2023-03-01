@@ -1,13 +1,12 @@
-use std::collections::HashMap;
-
-use actix_web::{get, HttpResponse, Responder};
+use axum::response::{IntoResponse, Response};
 
 #[utoipa::path(
+    get,
+    path = "/health-check",
     responses(
         (status = 200, description = "Returns true")
     ),
 )]
-#[get("/health-check")]
-pub async fn health_check() -> impl Responder {
-    HttpResponse::Ok().json(HashMap::new().insert("status", "true"))
+pub fn health_check() -> Response<Vec<u8>> {
+    Response::body(vec!([]))
 }

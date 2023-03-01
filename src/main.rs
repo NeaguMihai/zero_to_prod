@@ -6,7 +6,7 @@ use zero_to_prod::common::configuration::{
 };
 use zero_to_prod::startup::run;
 
-#[actix_web::main]
+#[tokio::main]
 async fn main() -> std::io::Result<()> {
     ConfigService::init();
     let port: u16 = ConfigService::get(Env::ServerPort).parse().unwrap();
@@ -21,5 +21,5 @@ async fn main() -> std::io::Result<()> {
 
     setup_logger(std::io::stdout);
 
-    run(listener, connection_pool)?.await
+    run(listener, connection_pool).await
 }

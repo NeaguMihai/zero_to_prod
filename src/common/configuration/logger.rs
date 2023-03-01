@@ -1,4 +1,7 @@
-use tracing::subscriber::set_global_default;
+use tower_http::{
+    trace::{DefaultMakeSpan, TraceLayer, DefaultOnResponse, DefaultOnFailure},
+};
+use tracing::{subscriber::set_global_default, Level};
 use tracing_log::LogTracer;
 use tracing_subscriber::{
     fmt::{self, MakeWriter},
@@ -27,4 +30,11 @@ where
     // `set_global_default` can be used by applications to specify
     // what subscriber should be used to process spans.
     set_global_default(subscriber).expect("Failed to set subscriber");
+}
+
+pub fn get_trace_layer() -> TraceLayer<tower_http::classify::SharedClassifier<tower_http::classify::ServerErrorsAsFailures>> {
+    TraceLayer::new_for_http()
+        .make_span_with(DefaultMakeSpan::new().level(Level::INFO))
+        .on_response(DefaultOnResponse::new().level(Level::INFO))
+        .on_failure(DefaultOnFailure::new().level(Level::ERROR))
 }
