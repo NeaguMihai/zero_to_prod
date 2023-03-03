@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::models::subscription::Subscription;
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Clone)]
 pub struct SubscribeDto {
     name: String,
     email: String,

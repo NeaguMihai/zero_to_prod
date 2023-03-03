@@ -7,7 +7,7 @@ use uuid::Uuid;
 
 use crate::schema::subscriptions;
 
-#[derive(Queryable, Insertable, Serialize, Deserialize)]
+#[derive(Queryable, PartialEq, Insertable, Serialize, Deserialize)]
 #[diesel(table_name = subscriptions)]
 pub struct Subscription {
     pub id: Uuid,
