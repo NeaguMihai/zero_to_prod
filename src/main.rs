@@ -1,11 +1,3 @@
-use std::net::TcpListener;
-use zero_to_prod::common::configuration::database::DatabaseConnectionOptions;
-use zero_to_prod::common::configuration::logger::setup_logger;
-use zero_to_prod::common::configuration::{
-    database::DatabaseConnectionFactory, env::Env, ConfigService,
-};
-use zero_to_prod::startup::run;
-
 #[tokio::main]
 async fn main() -> std::io::Result<()> {
     ConfigService::init();

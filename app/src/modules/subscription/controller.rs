@@ -3,6 +3,7 @@ use crate::common::core::traits::Controller;
 use crate::models::subscription::dtos::create_subscription::SubscribeDto;
 use crate::models::subscription::Subscription;
 use crate::schema::subscriptions::dsl;
+use axum::http::Error;
 use axum::response::{IntoResponse, Response};
 use axum::Extension;
 use axum::Json;
@@ -10,12 +11,11 @@ use diesel::insert_into;
 use diesel::r2d2::ConnectionManager;
 use diesel::PgConnection;
 use diesel::RunQueryDsl;
-use hyper::StatusCode;
 use r2d2::PooledConnection;
 
 pub struct SubscriptionController {}
 
-impl Controller for SubscriptionController {
+impl SubscriptionController {
     fn name(&self) -> &'static str {
         "SubscriptionController"
     }
@@ -34,7 +34,7 @@ impl Controller for SubscriptionController {
         B: axum::body::HttpBody + Send + Sync + 'static,
         S: Clone + Send + Sync + 'static,
     {
-        vec![("subscribe".to_string(), axum::routing::post(subscribe))]
+        vec![]
     }
 }
 
@@ -47,7 +47,7 @@ impl Controller for SubscriptionController {
 //     )
 // )]
 pub async fn subscribe(
-    Json(body): Json<SubscribeDto>, pool: Extension<PgPool>
+    axum::Json(body): axum::Json<SubscribeDto>, pool: Extension<PgPool>
 ) -> Response {
     // let conn = pool.get().unwrap();
     // log::info!("Saving subscription");
