@@ -1,9 +1,12 @@
+use axum::Router;
+use macros::{controller, register_routes, RouteController};
 use app_core::traits::Controller;
-use macros::{controller, register_routes, RouteController, route};
 // #[derive(RouteController)]
-struct A {}
+// struct A {}
 
-#[derive(RouteController)]
+use syn::LitStr;
+
+#[controller("asd")]
 struct B {}
 
 // // #[controller]
@@ -12,9 +15,14 @@ struct B {}
 // }
 
 fn main() {
-    let a = A {};
-    // let b = B {};
-    // b.name();
+    // let a = A {};
+    // a.;
+    let b = B {};
+    // let r = Router::new();
+    // b.register_routes(r);
     // println!("{}", b.base_path());
     // b.register_route();
+    // let a = "asdas";
+    // let tli = LitStr::new(&a, proc_macro2::Span::call_site());
+    // register_routes!("./src/lib.rs");
 }

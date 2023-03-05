@@ -4,35 +4,16 @@ use crate::models::subscription::Subscription;
 use crate::schema::subscriptions::dsl;
 use axum::response::{IntoResponse, Response};
 use axum::Extension;
-use diesel::insert_into;
 use diesel::r2d2::ConnectionManager;
 use diesel::PgConnection;
+use macros::controller;
 use r2d2::PooledConnection;
+use macros::RouteController;
+use app_core::traits::Controller;
 
+
+#[controller("/subscriptions")]
 pub struct SubscriptionController {}
-
-impl SubscriptionController {
-    fn name(&self) -> &'static str {
-        "SubscriptionController"
-    }
-
-    fn base_path(&self) -> &'static str {
-        "/subscriptions"
-    }
-
-    fn register_routes<S, B>(
-        &self,
-    ) -> Vec<(
-        String,
-        axum::routing::MethodRouter<S, B, std::convert::Infallible>,
-    )>
-    where
-        B: axum::body::HttpBody + Send + Sync + 'static,
-        S: Clone + Send + Sync + 'static,
-    {
-        vec![]
-    }
-}
 
 // #[tracing::instrument(
 //     name = "Adding a new subscriber.",
