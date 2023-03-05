@@ -1,7 +1,8 @@
-use crate::common::{configuration::database::postgres_config::PgPool, core::traits::Module};
+use crate::common::configuration::database::postgres_config::PgPool;
 use crate::common::configuration::logger::get_trace_layer;
 use crate::common::configuration::open_api::initialize_openapi;
 use crate::modules::app::AppModule;
+use app_core::traits::Module;
 use axum::{Extension, Router};
 use std::net::TcpListener;
 use utoipa_swagger_ui::SwaggerUi;
@@ -22,10 +23,10 @@ pub async fn run(listener: TcpListener, connection: PgPool) -> Result<(), std::i
         .iter()
         .fold(app, |router, module| module.register_controllers(router));
 
-    let _server = axum::Server::from_tcp(listener)
-        .expect("Faield to create server from listener")
-        .serve(app.into_make_service())
-        .await
-        .unwrap();
+    // let _server = axum::Server::from_tcp(listener)
+    //     .expect("Faield to create server from listener")
+    //     .serve(app.into_make_service())
+    //     .await
+    //     .unwrap();
     Ok(())
 }

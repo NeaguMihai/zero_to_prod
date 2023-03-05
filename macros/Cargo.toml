@@ -13,4 +13,4 @@ axum = "0.6.9"
 proc-macro2 = "1.0.51"
 quote = "1.0.23"
 syn = { version = "1.0.109", features = ["full", "fold"]}
-web-code = { path = "../web-code" }
+app-core = { path = "../app-core" }

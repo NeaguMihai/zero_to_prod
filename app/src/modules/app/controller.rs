@@ -1,6 +1,6 @@
 use std::convert::Infallible;
 
-use crate::common::core::traits::Controller;
+use app_core::traits::Controller;
 use axum::{
     response::{IntoResponse, Response},
     routing::MethodRouter,

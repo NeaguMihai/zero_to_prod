@@ -1,21 +1,20 @@
 #[cfg(test)]
 mod tests {
+    use app::common::configuration::database::DatabaseConnectionFactory;
+    use app::common::configuration::database::DatabaseConnectionOptions;
+    use app::common::configuration::database::postgres_config::PgPool;
+    use app::common::configuration::database::run_migrations;
+    use app::common::configuration::logger::setup_logger;
+    use app::models::subscription::Subscription;
+    use app::models::subscription::dtos::create_subscription::SubscribeDto;
+    use app::schema::subscriptions::dsl::subscriptions;
+    use app::startup::run;
     use diesel::pg::Pg;
     use diesel::sql_query;
     use diesel::RunQueryDsl;
     use once_cell::sync::Lazy;
     use std::net::TcpListener;
     use uuid::Uuid;
-    use zero_to_prod::common::configuration::database::postgres_config::PgPool;
-    use zero_to_prod::common::configuration::database::DatabaseConnectionFactory;
-    use zero_to_prod::common::configuration::database::{
-        run_migrations, DatabaseConnectionOptions,
-    };
-    use zero_to_prod::common::configuration::logger::setup_logger;
-    use zero_to_prod::models::subscription::dtos::create_subscription::SubscribeDto;
-    use zero_to_prod::models::subscription::Subscription;
-    use zero_to_prod::schema::subscriptions::dsl::subscriptions;
-    use zero_to_prod::startup::run;
 
     static TRACING: Lazy<()> = Lazy::new(|| {
         if std::env::var("TEST_LOG").is_ok() {

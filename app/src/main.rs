@@ -1,3 +1,8 @@
+use std::net::TcpListener;
+
+use app::common::configuration::{ConfigService, env::Env, database::{DatabaseConnectionFactory, DatabaseConnectionOptions}, logger::setup_logger};
+use app::startup::run;
+
 #[tokio::main]
 async fn main() -> std::io::Result<()> {
     ConfigService::init();

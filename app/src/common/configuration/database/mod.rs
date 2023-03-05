@@ -9,7 +9,7 @@ pub mod postgres_config;
 
 type DbPool<T> = r2d2::Pool<ConnectionManager<T>>;
 
-pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("./migrations");
+pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("../migrations");
 
 pub fn run_migrations<DB>(connection: &mut impl MigrationHarness<DB>)
 where

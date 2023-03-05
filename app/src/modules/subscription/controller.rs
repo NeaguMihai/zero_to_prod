@@ -1,16 +1,12 @@
 use crate::common::configuration::database::postgres_config::PgPool;
-use crate::common::core::traits::Controller;
 use crate::models::subscription::dtos::create_subscription::SubscribeDto;
 use crate::models::subscription::Subscription;
 use crate::schema::subscriptions::dsl;
-use axum::http::Error;
 use axum::response::{IntoResponse, Response};
 use axum::Extension;
-use axum::Json;
 use diesel::insert_into;
 use diesel::r2d2::ConnectionManager;
 use diesel::PgConnection;
-use diesel::RunQueryDsl;
 use r2d2::PooledConnection;
 
 pub struct SubscriptionController {}
@@ -47,7 +43,8 @@ impl SubscriptionController {
 //     )
 // )]
 pub async fn subscribe(
-    axum::Json(body): axum::Json<SubscribeDto>, pool: Extension<PgPool>
+    axum::Json(body): axum::Json<SubscribeDto>,
+    pool: Extension<PgPool>,
 ) -> Response {
     // let conn = pool.get().unwrap();
     // log::info!("Saving subscription");
@@ -64,16 +61,16 @@ pub async fn subscribe(
     ().into_response()
 }
 
-#[tracing::instrument(name = "Inserting subscriber.", skip(conn, new_subscription))]
+// #[tracing::instrument(name = "Inserting subscriber.", skip(conn, new_subscription))]
 fn insert_new_subscriber(
     mut conn: PooledConnection<ConnectionManager<PgConnection>>,
     new_subscription: Subscription,
 ) -> Result<Subscription, diesel::result::Error> {
-    match insert_into(dsl::subscriptions)
-        .values(&new_subscription)
-        .get_result(&mut conn)
-    {
-        Ok(save_result) => Ok(save_result),
-        Err(e) => Err(e),
-    }
+    // match insert_into(dsl::subscriptions)
+    //     .values(&new_subscription)
+    // {
+    //     Ok(save_result) => Ok(save_result),
+    //     Err(e) => Err(e),
+    // }
+    Ok(new_subscription)
 }

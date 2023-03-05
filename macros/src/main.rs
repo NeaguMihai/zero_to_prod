@@ -1,15 +1,20 @@
-use macros::{ route, Controller };
-use macros::traits::APIController;
-// #[derive(Controller)]
+use app_core::traits::Controller;
+use macros::{controller, register_routes, RouteController, route};
+// #[derive(RouteController)]
 struct A {}
 
-#[route]
-fn oky() -> A {
-    A {}
-}
+#[derive(RouteController)]
+struct B {}
+
+// // #[controller]
+// fn oky() -> A {
+//     A {}
+// }
 
 fn main() {
-    
     let a = A {};
-    
+    // let b = B {};
+    // b.name();
+    // println!("{}", b.base_path());
+    // b.register_route();
 }

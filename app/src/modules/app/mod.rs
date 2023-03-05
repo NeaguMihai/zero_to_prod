@@ -1,6 +1,6 @@
+use app_core::traits::Module;
 use axum::Router;
 
-use crate::common::core::traits::Module;
 use crate::common::utils::register_routes;
 
 pub mod controller;

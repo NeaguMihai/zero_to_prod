@@ -1,18 +1,19 @@
-[package]
-name = "zero_to_prod"
-version = "0.1.0"
-authors = ["Mihai Neagu"]
-edition = "2021"
+# [package]
+# name = "zero_to_prod"
+# version = "0.1.0"
+# authors = ["Mihai Neagu"]
+# edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-[[bin]]
-path = "src/main.rs"
-name = "zero2prod"
+# # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+# [[bin]]
+# path = "app/src/main.rs"
+# name = "zero2prod"
 
-[dev-dependencies.cargo-husky]
-default-features = false
-version = "1.5.0"
-features = ["user-hooks"]
+# [dev-dependencies.cargo-husky]
+# default-features = false
+# version = "1.5.0"
+# features = ["user-hooks"]
 
-[workspaces]
-members = ["app"]
+[workspace]
+members = ["app", "macros", "app-core"]
+default-members = ["app"]
