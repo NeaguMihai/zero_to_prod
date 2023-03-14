@@ -33,8 +33,15 @@ utoipa = { version = "3.0.3", features = ["axum_extras"] }
 utoipa-swagger-ui = { version = "3", features = ["axum"] }
 tower-http = { version = "0.4.0", features = ["trace"] }
 hyper = "0.14.24"
-macros = { version = "0.1.0", path = "../macros" }
 app-core = { version = "0.1.0", path = "../app-core" }
+macros = { version = "0.1.0", path = "../macros" }
+bincode = "1.3.3"
+regex = "1.7.1"
 
 [dev-dependencies]
 reqwest = { version = "0.11", features = ["json"] }
+
+[build-dependencies]
+bincode = "1.3.3"
+regex = "1.7.1"
+lazy_static = "1.4.0"

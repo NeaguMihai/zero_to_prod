@@ -1,30 +1,10 @@
-use std::convert::Infallible;
-
-use app_core::traits::Controller;
 use axum::{
     response::{IntoResponse, Response},
-    routing::MethodRouter,
 };
+use macros::get;
 
 pub struct HealthCheckController {}
 
-impl Controller for HealthCheckController {
-    fn name(&self) -> &'static str {
-        "HealthCheckController"
-    }
-
-    fn base_path(&self) -> &'static str {
-        "/app"
-    }
-
-    fn register_routes<S, B>(&self) -> Vec<(String, MethodRouter<S, B, Infallible>)>
-    where
-        B: axum::body::HttpBody + Send + Sync + 'static,
-        S: Clone + Send + Sync + 'static,
-    {
-        vec![("health-check".to_string(), axum::routing::get(health_check))]
-    }
-}
 
 #[utoipa::path(
     get,
@@ -33,6 +13,7 @@ impl Controller for HealthCheckController {
         (status = 200, description = "Returns true")
     ),
 )]
+// #[get("health-check")]
 pub async fn health_check() -> Response {
     ("true").into_response()
 }

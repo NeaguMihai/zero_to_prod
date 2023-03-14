@@ -8,5 +8,5 @@ pub trait Module {
 pub trait Controller {
     fn name(&self) -> &'static str;
     fn base_path(&self) -> &'static str;
-    fn register_routes(&self, router: Router) -> Router;
+    fn register_routes(&self) -> ();
 }
