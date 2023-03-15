@@ -11,16 +11,16 @@ pub async fn run(listener: TcpListener, connection: PgPool) -> Result<(), std::i
 
     let openapi = initialize_openapi();
 
-    let modules: Vec<Box<dyn Module>> = vec![];
+    // let modules: Vec<Box<dyn Module>> = vec![];
 
     let app = Router::new()
         .layer(get_trace_layer())
         .layer(atomic_connection)
         .merge(SwaggerUi::new("/swagger-ui").url("/api-doc/openapi.json", openapi));
 
-    let app = modules
-        .iter()
-        .fold(app, |router, module| module.register_controllers(router));
+    // let app = modules
+    //     .iter()
+    //     .fold(app, |router, module| module.register_controllers(router));
 
     let _server = axum::Server::from_tcp(listener)
         .expect("Faield to create server from listener")
