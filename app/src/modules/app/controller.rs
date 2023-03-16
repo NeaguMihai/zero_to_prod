@@ -1,10 +1,7 @@
-use axum::{
-    response::{IntoResponse, Response},
-};
-use macros::get;
+use axum::response::{IntoResponse, Response};
+// use macros::get;
 
 pub struct HealthCheckController {}
-
 
 #[utoipa::path(
     get,

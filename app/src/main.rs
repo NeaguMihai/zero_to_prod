@@ -1,6 +1,11 @@
 use std::net::TcpListener;
 
-use app::common::configuration::{ConfigService, env::Env, database::{DatabaseConnectionFactory, DatabaseConnectionOptions}, logger::setup_logger};
+use app::common::configuration::{
+    database::{DatabaseConnectionFactory, DatabaseConnectionOptions},
+    env::Env,
+    logger::setup_logger,
+    ConfigService,
+};
 use app::startup::run;
 
 #[tokio::main]

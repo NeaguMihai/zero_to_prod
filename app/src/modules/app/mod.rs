@@ -16,6 +16,6 @@ pub struct AppModule;
 //         let controllers = vec![controller::HealthCheckController {}];
 
 //         register_routes(controllers, router)
-        
+
 //     }
 // }

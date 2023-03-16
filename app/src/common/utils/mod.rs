@@ -1,7 +1,6 @@
 // use app_core::traits::Controller;
 // use axum::Router;
 
-
 // pub fn register_routes(controller: Vec<impl Controller>, router: Router) -> Router {
 //   controller.into_iter().fold(router, |router, controller| {
 

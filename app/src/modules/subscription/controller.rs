@@ -2,7 +2,6 @@ use crate::common::configuration::database::postgres_config::PgPool;
 use crate::models::subscription::dtos::create_subscription::SubscribeDto;
 use crate::models::subscription::Subscription;
 use crate::schema::subscriptions::dsl::*;
-use axum::routing::*;
 use axum::response::{IntoResponse, Response};
 use axum::routing::Router;
 use axum::{Extension, Json};
@@ -41,13 +40,9 @@ fn insert_new_subscriber(
     mut conn: PooledConnection<ConnectionManager<PgConnection>>,
     new_subscription: Subscription,
 ) -> Result<Subscription, diesel::result::Error> {
-    let insert_result = insert_into(subscriptions)
+    insert_into(subscriptions)
         .values(&new_subscription)
-        .get_result(&mut conn);
-    match insert_result {
-        Ok(save_result) => return Ok(save_result),
-        Err(e) => return Err(e),
-    };
+        .get_result(&mut conn)
 }
 
 #[controller("subscriptions")]

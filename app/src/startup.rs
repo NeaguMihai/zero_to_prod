@@ -1,7 +1,7 @@
 use crate::common::configuration::database::postgres_config::PgPool;
 use crate::common::configuration::logger::get_trace_layer;
 use crate::common::configuration::open_api::initialize_openapi;
-use app_core::traits::Module;
+// use app_core::traits::Module;
 use axum::{Extension, Router};
 use std::net::TcpListener;
 use utoipa_swagger_ui::SwaggerUi;

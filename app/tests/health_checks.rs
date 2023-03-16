@@ -1,12 +1,12 @@
 #[cfg(test)]
 mod tests {
-    use app::common::configuration::database::DatabaseConnectionFactory;
-    use app::common::configuration::database::DatabaseConnectionOptions;
     use app::common::configuration::database::postgres_config::PgPool;
     use app::common::configuration::database::run_migrations;
+    use app::common::configuration::database::DatabaseConnectionFactory;
+    use app::common::configuration::database::DatabaseConnectionOptions;
     use app::common::configuration::logger::setup_logger;
-    use app::models::subscription::Subscription;
     use app::models::subscription::dtos::create_subscription::SubscribeDto;
+    use app::models::subscription::Subscription;
     use app::schema::subscriptions::dsl::subscriptions;
     use app::startup::run;
     use diesel::pg::Pg;

@@ -1,9 +1,10 @@
 use std::{
+    collections::HashMap,
     fs::{File, OpenOptions},
     io::{BufRead, BufReader, Write},
-    path::PathBuf,
+    path::{Path, PathBuf},
     sync::mpsc::{self},
-    thread, collections::HashMap,
+    thread,
 };
 
 use lazy_static::lazy_static;
@@ -62,7 +63,7 @@ fn main() {
         .write(true)
         .open(routes_file_path.clone())
         .expect("Failed to write routes to file")
-        .write(t.join("\n").as_bytes())
+        .write_all(t.join("\n").as_bytes())
         .expect("Failed to write routes to file");
 
     update_last_write(routes_file_path);
@@ -70,8 +71,7 @@ fn main() {
 
 fn create_routes_file_if_not_exists(routes_file: PathBuf) {
     if !routes_file.exists() {
-        let mut routes =
-            std::fs::File::create(routes_file.clone()).expect("Failed to create routes file");
+        let mut routes = std::fs::File::create(routes_file).expect("Failed to create routes file");
 
         routes
             .write_all("last_write:0\n".as_bytes())
@@ -115,7 +115,7 @@ fn update_last_write(routes_file_path: PathBuf) {
         .expect("Failed to get duration since epoch")
         .as_secs();
 
-    previous_content.insert(0, format!("last_write:{}", current_timestamp).to_string());
+    previous_content.insert(0, format!("last_write:{}", current_timestamp));
     println!("Previous content: {:?}", previous_content.join("\n"));
 
     std::fs::write(routes_file_path, previous_content.join("\n"))
@@ -125,40 +125,38 @@ fn update_last_write(routes_file_path: PathBuf) {
 fn walk_path(
     path: PathBuf,
     routes_path: PathBuf,
-    last_write: u64,
+    _last_write: u64,
     tx: mpsc::Sender<ControllerStructure>,
 ) {
     let entries = std::fs::read_dir(path).expect("Failed to read src");
-    for entry in entries {
-        if let Ok(entry) = entry {
-            let path = entry.path();
-            if path.is_dir() {
-                let route_path_clone = routes_path.clone();
-                let tx_clone = tx.clone();
-                thread::spawn(move || {
-                    walk_path(path, route_path_clone, last_write, tx_clone);
-                });
-            } else {
-                if !is_controller(path.clone()) {
-                    continue;
-                }
+    for entry in entries.into_iter().flatten() {
+        let path = entry.path();
+        if path.is_dir() {
+            let route_path_clone = routes_path.clone();
+            let tx_clone = tx.clone();
+            thread::spawn(move || {
+                walk_path(path, route_path_clone, _last_write, tx_clone);
+            });
+        } else {
+            if !is_controller(path.clone()) {
+                continue;
+            }
 
-                let f = File::open(path.clone());
-                if let Ok(file) = f {
-                    let reader = BufReader::new(file);
-                    let lines = reader.lines().into_iter();
-                    match find_controller(lines, &path) {
-                        Some(controller) => {
-                            tx.send(controller).unwrap();
-                        }
-                        None => {
-                            panic!(
-                                "Expected to find controller in file: {}",
-                                path.file_name().unwrap().to_str().unwrap()
-                            );
-                        }
-                    };
-                }
+            let f = File::open(path.clone());
+            if let Ok(file) = f {
+                let reader = BufReader::new(file);
+                let lines = reader.lines();
+                match find_controller(lines, &path) {
+                    Some(controller) => {
+                        tx.send(controller).unwrap();
+                    }
+                    None => {
+                        panic!(
+                            "Expected to find controller in file: {}",
+                            path.file_name().unwrap().to_str().unwrap()
+                        );
+                    }
+                };
             }
         }
     }
@@ -166,7 +164,7 @@ fn walk_path(
 
 fn find_controller(
     mut lines: std::io::Lines<BufReader<File>>,
-    path: &PathBuf,
+    path: &Path,
 ) -> Option<ControllerStructure> {
     loop {
         let line = lines.next();
@@ -185,7 +183,7 @@ fn find_controller(
         };
         loop {
             let next_line = lines.next().unwrap().unwrap_or_default();
-            if next_line.starts_with("}") || next_line.is_empty() {
+            if next_line.starts_with('}') || next_line.is_empty() {
                 break;
             }
             let found_controller = CONTROLLER_REGEX.captures(&next_line);
@@ -196,7 +194,7 @@ fn find_controller(
             let found_controller = found_controller.unwrap();
             let controller_name = found_controller.get(1).unwrap().as_str();
             controller_structure.name = controller_name.to_string();
-            controller_structure.path = path.clone().to_str().unwrap().to_string();
+            controller_structure.path = path.to_path_buf().to_str().unwrap().to_string();
             return Some(controller_structure);
         }
     }
