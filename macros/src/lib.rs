@@ -11,7 +11,7 @@ use proc_macro::TokenStream;
 use proc_macro2::{Group, Ident};
 use quote::quote;
 use regex::Regex;
-use syn::{parse2, parse_macro_input, Attribute, DeriveInput, ItemFn, LitStr};
+use syn::{parse2, parse_macro_input, Attribute, DeriveInput, ItemFn, LitStr, Type};
 
 const METHODS: [&str; 5] = ["#[get", "#[post", "#[put", "#[delete", "#[patch"];
 
@@ -23,18 +23,11 @@ lazy_static! {
 
 #[proc_macro_attribute]
 pub fn controller(attr: TokenStream, item: TokenStream) -> TokenStream {
-    println!("controller");
     let base_route = parse2::<LitStr>(attr.into()).unwrap();
     let struct_data = parse2::<DeriveInput>(item.into()).unwrap();
     if let syn::Data::Struct(_) = struct_data.data {
-        let name = struct_data.ident;
-        let fields = match struct_data.data {
-            syn::Data::Struct(data_struct) => data_struct.fields,
-            _ => panic!("Expected struct"),
-        };
+        let (name, field_names, field_types) = destructure_struct_data(struct_data);
 
-        let field_names = fields.iter().map(|field| field.ident.as_ref().unwrap());
-        let field_types = fields.iter().map(|field| &field.ty);
         let crate_dir = std::env::var("CARGO_MANIFEST_DIR").expect("Failed to get current dir");
         let target_dir = PathBuf::from(crate_dir);
         let target_dir = target_dir.parent().unwrap();
@@ -72,6 +65,20 @@ pub fn controller(attr: TokenStream, item: TokenStream) -> TokenStream {
     }
 
     panic!("Expected struct");
+}
+
+fn destructure_struct_data(struct_data: DeriveInput) -> (Ident, Vec<Ident>, Vec<Type>) {
+    let name = struct_data.ident;
+    let fields = match struct_data.data {
+        syn::Data::Struct(data_struct) => data_struct.fields,
+        _ => panic!("Expected struct"),
+    };
+
+    let (field_names, field_types): (Vec<_>, Vec<_>) = fields
+        .iter()
+        .map(move |field| (field.ident.clone().unwrap(), field.ty.clone()))
+        .unzip();
+    (name, field_names, field_types)
 }
 
 #[proc_macro_derive(RouteController, attributes(base_route, file_path))]
@@ -223,4 +230,109 @@ pub fn patch(_attr: TokenStream, item: TokenStream) -> TokenStream {
 #[proc_macro_attribute]
 pub fn options(_attr: TokenStream, item: TokenStream) -> TokenStream {
     route(_attr, item, "options")
+}
+
+#[cfg(test)]
+mod tests {
+    use std::panic;
+
+    use quote::quote;
+    use syn::{parse2, DeriveInput};
+
+    #[test]
+    fn test_controller_panics_on_invalid_input() {
+        let input = quote! {
+            function Controller() {}
+        };
+
+        let result = panic::catch_unwind(|| parse2::<DeriveInput>(input).unwrap());
+
+        assert!(result.is_err());
+        match result {
+            Ok(_) => {}
+            Err(err) => {
+                let err = err.downcast_ref::<String>().unwrap().as_str();
+                assert_eq!(err, "called `Result::unwrap()` on an `Err` value: Error(\"expected one of: `struct`, `enum`, `union`\")");
+            }
+        };
+    }
+
+    #[test]
+    fn test_destructure_struct_data_works_without_attributes() {
+        let input = quote! {
+            struct TestController {}
+        };
+
+        let struct_data = parse2::<DeriveInput>(input).unwrap();
+
+        let (ident, field_names, field_types) = super::destructure_struct_data(struct_data);
+
+        assert_eq!(ident, "TestController");
+        assert!(field_names.is_empty());
+        assert!(field_types.is_empty());
+    }
+
+    #[test]
+    fn test_destructure_struct_data_works_witho_attributes() {
+        let input = quote! {
+            struct TestController {
+                attr1: String,
+                attr2: i32,
+            }
+        };
+
+        let struct_data = parse2::<DeriveInput>(input).unwrap();
+
+        let (ident, field_names, field_types) = super::destructure_struct_data(struct_data);
+
+        assert_eq!(ident, "TestController");
+        assert!(field_names.get(0).is_some());
+        assert_eq!(field_names.get(0).unwrap().to_string(), "attr1");
+        assert!(field_names.get(1).is_some());
+        assert_eq!(field_names.get(1).unwrap().to_string(), "attr2");
+        assert!(field_types.get(0).is_some());
+        let field_path = match field_types.get(0).unwrap() {
+            syn::Type::Path(path) => path,
+            _ => panic!("Expected a path type"),
+        };
+        assert!(field_path.path.segments.first().is_some());
+        assert_eq!(
+            field_path.path.segments.first().unwrap().ident.to_string(),
+            "String"
+        );
+        assert!(field_types.get(0).is_some());
+        let field_path = match field_types.get(1).unwrap() {
+            syn::Type::Path(path) => path,
+            _ => panic!("Expected a path type"),
+        };
+        assert!(field_path.path.segments.first().is_some());
+        assert_eq!(
+            field_path.path.segments.first().unwrap().ident.to_string(),
+            "i32"
+        );
+    }
+
+    #[test]
+    fn test_destructure_struct_should_panic() {
+        let input = quote! {
+            enum TestController {}
+        };
+
+        let struct_data = parse2::<DeriveInput>(input).unwrap();
+
+        let result = panic::catch_unwind(|| super::destructure_struct_data(struct_data));
+
+        assert!(result.is_err());
+        match result {
+            Ok(_) => {
+                panic!("Expected a panic");
+            }
+            Err(err) => {
+                assert_eq!(
+                    err.downcast_ref::<&str>().unwrap().to_string(),
+                    "Expected struct"
+                );
+            }
+        };
+    }
 }
