@@ -21,50 +21,27 @@ lazy_static! {
     static ref ROUTE_REGEX: Regex = Regex::new(r#"#\[.*\("(.*)"\)\]"#).unwrap();
 }
 
-#[proc_macro_attribute]
-pub fn controller(attr: TokenStream, item: TokenStream) -> TokenStream {
-    let base_route = parse2::<LitStr>(attr.into()).unwrap();
-    let struct_data = parse2::<DeriveInput>(item.into()).unwrap();
-    if let syn::Data::Struct(_) = struct_data.data {
-        let (name, field_names, field_types) = destructure_struct_data(struct_data);
-
-        let crate_dir = std::env::var("CARGO_MANIFEST_DIR").expect("Failed to get current dir");
-        let target_dir = PathBuf::from(crate_dir);
-        let target_dir = target_dir.parent().unwrap();
-        let routes_file_path = target_dir.join("target/tmp/routes.txt");
-        let reader =
-            BufReader::new(File::open(routes_file_path).expect("Failed to open routes file"));
-        let path = reader.lines().find(|line| {
-            let line = line.as_ref().unwrap();
-            if line.starts_with(&format!("{}:", name)) {
-                return true;
-            }
-            false
-        });
-        let path = path
-            .unwrap()
-            .unwrap()
-            .split(':')
-            .collect::<Vec<&str>>()
-            .get(1)
-            .unwrap()
-            .to_string();
-
-        let generated_code = quote! {
-
-
-            #[derive(RouteController)]
-            #[base_route(#base_route)]
-            #[file_path(#path)]
-            struct #name {
-                pub router: Option<Router>,
-                #( #field_names: #field_types ),*
-            }
-        };
-        return TokenStream::from(generated_code);
-    }
-
-    panic!("Expected struct");
+fn find_controller_path(name: String, crate_dir: String) -> String {
+    let target_dir = PathBuf::from(crate_dir);
+    let target_dir = target_dir.parent().unwrap();
+    let routes_file_path = target_dir.join("target/tmp/routes.txt");
+    let reader = BufReader::new(File::open(routes_file_path).expect("Failed to open routes file"));
+    let path = reader.lines().find(|line| {
+        let line = line.as_ref().unwrap();
+        if line.starts_with(&format!("{}:", name)) {
+            return true;
+        }
+        false
+    });
+    let path = path
+        .unwrap()
+        .unwrap()
+        .split(':')
+        .collect::<Vec<&str>>()
+        .get(1)
+        .unwrap()
+        .to_string();
+    path
 }
 
 fn destructure_struct_data(struct_data: DeriveInput) -> (Ident, Vec<Ident>, Vec<Type>) {
@@ -182,7 +159,7 @@ fn find_routes(mut lines: std::io::Lines<BufReader<File>>) -> Vec<(String, Strin
 fn parse_controller_attributes(attrs: Vec<Attribute>, index: u16) -> String {
     let base_route: String = match attrs.get(index as usize) {
         Some(attr) => {
-            let group = match parse2::<Group>(attr.tokens.clone()) {
+            let group: Group = match attr.parse_args() {
                 Ok(group) => group,
                 Err(err) => panic!("Error parsing base route or controller path: {:?}", err),
             };
@@ -232,29 +209,75 @@ pub fn options(_attr: TokenStream, item: TokenStream) -> TokenStream {
     route(_attr, item, "options")
 }
 
+#[proc_macro_attribute]
+pub fn controller(attr: TokenStream, item: TokenStream) -> TokenStream {
+    let base_route = parse2::<LitStr>(attr.into()).unwrap();
+    let struct_data = parse2::<DeriveInput>(item.clone().into()).unwrap();
+    let crate_dir = std::env::var("CARGO_MANIFEST_DIR").expect("Failed to get current dir");
+    let (name, field_names, field_types) = destructure_struct_data(struct_data);
+    let path = find_controller_path(name.to_string(), crate_dir);
+
+    let generated_code = quote! {
+
+        #[derive(RouteController)]
+        #[base_route(#base_route)]
+        #[file_path(#path)]
+        struct #name {
+            pub router: Option<Router>,
+            #( #field_names: #field_types ),*
+        }
+    };
+    TokenStream::from(generated_code)
+}
+
 #[cfg(test)]
 mod tests {
-    use std::panic;
+    use std::{fs::File, io::Write, panic};
 
     use quote::quote;
     use syn::{parse2, DeriveInput};
 
+    use crate::find_controller_path;
+
     #[test]
-    fn test_controller_panics_on_invalid_input() {
-        let input = quote! {
-            function Controller() {}
-        };
+    fn test_route_regex_works() {
+        let input = r#"
+            #[get("/test")]
+            async fn test() {}
+        "#;
 
-        let result = panic::catch_unwind(|| parse2::<DeriveInput>(input).unwrap());
+        let binding = input.to_string();
+        println!("binding: {}", binding);
+        let function_name = super::ROUTE_REGEX
+            .captures(&binding)
+            .unwrap()
+            .get(1)
+            .unwrap()
+            .as_str();
 
-        assert!(result.is_err());
-        match result {
-            Ok(_) => {}
-            Err(err) => {
-                let err = err.downcast_ref::<String>().unwrap().as_str();
-                assert_eq!(err, "called `Result::unwrap()` on an `Err` value: Error(\"expected one of: `struct`, `enum`, `union`\")");
-            }
-        };
+        assert_eq!(function_name, "/test");
+
+        let binding = input.to_string();
+        println!("binding: {}", binding);
+        let function_name = super::METHOD_NAME_REGEX
+            .captures(&binding)
+            .unwrap()
+            .get(1)
+            .unwrap()
+            .as_str();
+
+        assert_eq!(function_name, "get");
+
+        let binding = input.to_string();
+        println!("binding: {}", binding);
+        let function_name = super::FUNCTION_REGEX
+            .captures(&binding)
+            .unwrap()
+            .get(1)
+            .unwrap()
+            .as_str();
+
+        assert_eq!(function_name, "test");
     }
 
     #[test]
@@ -334,5 +357,30 @@ mod tests {
                 );
             }
         };
+    }
+
+    #[test]
+    fn test_controller_input_works() {
+        let current_dir = std::env::current_dir().unwrap().join("tests");
+        File::create(current_dir.join("target/tmp/routes.txt"))
+            .unwrap()
+            .write_all(
+                ("TestController:".to_string()
+                    + current_dir.join("test_controller.rs").to_str().unwrap())
+                .as_bytes(),
+            )
+            .unwrap();
+        let path = find_controller_path(
+            "TestController".to_string(),
+            current_dir.join("target").to_str().unwrap().to_string(),
+        );
+        assert_eq!(
+            path,
+            current_dir
+                .join("test_controller.rs")
+                .to_str()
+                .unwrap()
+                .to_string()
+        );
     }
 }

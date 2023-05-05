@@ -44,6 +44,9 @@ fn insert_new_subscriber(
         .values(&new_subscription)
         .get_result(&mut conn)
 }
+static  ROUTES: Router = Vec::new();
 
 #[controller("subscriptions")]
 pub struct SubscriptionController {}
+
+    
